@@ -1,5 +1,1 @@
-safe: true
-source: <your pages repo>
-destination: <the build dir>
-lsi: false
 pygments: true
