@@ -29,7 +29,7 @@
       </div><!-- end header -->
 
     <div class="wrapper">
-		<section>
+		<section style="padding-top:100px;">
 	        <div id="title">
 				<img src="images/butterfly.png" align="left" style="padding-left:20px;" >
 	          <h1>Butterfly SQLite Framework</h1>
@@ -58,7 +58,7 @@
 		<p>
 			Let's say we want to make an app that stores contacts. For this we will need a model class named Contact.
 		</p>
-	<pre><code>	{% highlight ruby %}
+	{% highlight actionscript %}
 [Bindable]
 public class Contact 
 {
@@ -67,7 +67,7 @@ public class Contact
 	public var firstName:String;
 }
 {% endhighlight %}
-	</code></pre>
+	<pre><code>	</code></pre>
 
 	<p>Note that the class uses the metatag <code>[Bindable].</code> 
 		Without it, the framework will not be able to find relations between model and table. We ave also a metatag named <code>[PrimaryKey]</code>
