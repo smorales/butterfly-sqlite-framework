@@ -64,6 +64,8 @@ Bypass a callback if you want to be informed when the storing finishes.
 The callback method must expect one parameter, wich will be always the saved model instance. 
 Which is in this case our model class `Contact`. 
 {% highlight actionscript linenos %}
+
+{% highlight actionscript %}
 contact.save( onSavedContact );
 
 function onSavedContact($contact:Contact) : void
@@ -78,6 +80,7 @@ Call the `load()` method from the sqlite instance and give as argument the model
 This will the framework know, that you want load the content of the Contact table. 
 The callback function must implement one parameter type of `ArrayCollection`. The array collection
 will never be null, but can of course be emtpy.
+
 {% highlight actionscript %}
 sqlite.successHandler = onLoadedContacts;
 sqlite.load(Contact);
