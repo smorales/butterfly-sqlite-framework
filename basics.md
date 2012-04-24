@@ -79,7 +79,6 @@ Call the `load()` method from the sqlite instance and give as argument the model
 This will the framework know, that you want load the content of the Contact table. 
 The callback function must implement one parameter type of `ArrayCollection`. The array collection
 will never be null, but can of course be emtpy.
-
 {% highlight actionscript %}
 sqlite.successHandler = onLoadedContacts;
 sqlite.load(Contact);

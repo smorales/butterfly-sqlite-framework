@@ -551,13 +551,10 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
 }
 
-<<<<<<< HEAD
 h4 {
 	margin-top:70px;
 }
 
-=======
->>>>>>> 7f7b662198076f6ea801af1ce653bff5e65add8c
 p, ul, ol, table, pre, dl {
   margin: 0 0 20px;
 }
@@ -618,7 +615,6 @@ strong {
   padding: 0 20px;
 }
 
-<<<<<<< HEAD
 /*
 #pageContent {
 	top:0px;
@@ -626,8 +622,6 @@ strong {
 }
 */
 
-=======
->>>>>>> 7f7b662198076f6ea801af1ce653bff5e65add8c
 section img {
   max-width: 100%;
 }
@@ -655,24 +649,13 @@ code {
   font-size: 13px;
   margin: 0 0px; /*0 4px;*/
   padding: 2px 6px; /*4px 6px;*/
-=======
-code {
-  font-family: "Lucida Sans", Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
-  color: #efefef;
-  font-size: 13px;
-  margin: 0 4px;
-  padding: 4px 6px;
->>>>>>> 7f7b662198076f6ea801af1ce653bff5e65add8c
   -moz-border-radius: 2px;
   -webkit-border-radius: 2px;
   -o-border-radius: 2px;
   -ms-border-radius: 2px;
   -khtml-border-radius: 2px;
   border-radius: 2px;
-<<<<<<< HEAD
   background:#333333;
-=======
->>>>>>> 7f7b662198076f6ea801af1ce653bff5e65add8c
 }
 
 pre {
@@ -697,10 +680,7 @@ pre code {
   text-shadow: 0px 1px 0px #000;
   margin: 0;
   padding: 0;
-<<<<<<< HEAD
-background:#191919;
-=======
->>>>>>> 7f7b662198076f6ea801af1ce653bff5e65add8c
+  background:#191919;
 }
 
 table {
@@ -825,15 +805,9 @@ dt {
 
 section {
   max-width: 650px;
-<<<<<<< HEAD
   padding: 30px 0px 50px 0px; /*30px 0px 50px 0px;*/
   margin: 20px 0;
   margin-top: 70px; /*70px*/
-=======
-  padding: 30px 0px 50px 0px;
-  margin: 20px 0;
-  margin-top: 70px;
->>>>>>> 7f7b662198076f6ea801af1ce653bff5e65add8c
 }
 section #title {
   border: 0;
