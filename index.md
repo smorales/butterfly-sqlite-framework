@@ -19,5 +19,3 @@ Especially, when you handle huge amount of data.
 ### Table of Content
 
 * [Basics](/basics.html)
-* [Quick Start](/quick-start.html)
-* [Quick Start](/quick-start.html)
