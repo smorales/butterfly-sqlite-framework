@@ -63,7 +63,6 @@ contact.save();
 Bypass a callback if you want to be informed when the storing finishes. 
 The callback method must expect one parameter, wich will be always the saved model instance. 
 Which is in this case our model class `Contact`. 
-{% highlight actionscript linenos %}
 
 {% highlight actionscript %}
 contact.save( onSavedContact );
