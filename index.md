@@ -18,4 +18,4 @@ Especially, when you handle huge amount of data.
 
 ### Table of Content
 
-* [Basics](/basics.html)
+* [Basics](basics.html)
