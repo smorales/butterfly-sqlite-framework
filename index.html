@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Butterfly SQLite Framework</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/smorales/butterfly-sqlite-framework">Fork On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/smorales/butterfly-sqlite-framework/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/smorales/butterfly-sqlite-framework/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+		<section style="padding-top:100px;">
+	        <div id="title">
+				<img src="images/butterfly.png" align="left" style="padding-left:20px;" >
+	          <h1>Butterfly SQLite Framework</h1>
+	          <p>Adobe AIR SQLite-Framework</p>
+	          <hr>
+	          <span class="credits left">Project maintained by <a href="https://github.com/smorales">Solano Morales</a></span>
+	          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+	        </div>
+
+	        <h3>Welcome to Butterfly SQLite Framework.</h3>
+
+			<p>Databases are one of the few things in software development, which I really don't like. 
+			They are dry and boring, but still extremely useful and indispensable. 
+			So I decided, for an incoming AIR project to develop a framework that facilitates the handling of databases. 
+			My goal was to reduce SQL programming to the lowest. I wrote the framework in about a week because 
+			I didn't have too much time and it has not been tested for all possible cases, 
+			but it works very fine for small projects and not overly complex table structures.
+			</p>
+			<p>
+				The framework is designed to run asynchronously, as in most cases synchronous calls results to freeze the graphical user interface. 
+				Especially, when you handle huge amount of data.
+			</p>
+		</section>
+		<section>
+		<h3>Quick Start</h3>
+		<p>
+			Let's say we want to make an app that stores contacts. For this we will need a model class named Contact.
+		</p>
+	{ % highlight ruby %}
+[Bindable]
+public class Contact 
+{
+	[PrimaryKey]
+	public var id:int
+	public var firstName:String;
+}
+{ % endhighlight %}
+```ruby
+require 'redcarpet'
+markdown = Redcarpet.new("Hello World!")
+puts markdown.to_html
+```
+	<pre><code>	</code></pre>
+
+	<p>Note that the class uses the metatag <code>[Bindable].</code> 
+		Without it, the framework will not be able to find relations between model and table. We ave also a metatag named <code>[PrimaryKey]</code>
+		 which indicates that the variable <code>id</code> should be handled as a primary key.</p>
+	<br />
+	<p>
+	Now, let's create a sqlite instance, which creates also the database if it doesn't already exists.
+	<pre><code>// Create sqlite instance
+sqlite = SQLite.getInstance( File.applicationDirectory.resolvePath("addressbook.db" ).nativePath);
+	</code></pre>
+	</p>
+	<br />
+	<p>
+	After creating the sqlite instance we can initialize our Contact model.
+	<pre><code>// Initialize Contact table with model. The table will be created if it doesn't already exists.
+sqlite.initTable(Contact);
+	</code></pre>
+	</p>
+	<br />
+	<p>
+	At this point we are ready to store some contacts.  
+	<pre><code>var ana:Contact = new Contact();
+ana.firstName = "Ana Paula";
+
+var lauren:Contact = new Contact();
+lauren.firstName = "Lauren";
+
+var julie:Contact = new Contact();
+julie.firstName = "Julie";
+
+sqlite.save(ana);
+sqlite.save(lauren);
+sqlite.save(julie);
+	</code></pre>
+	You can have a lot of different model classes and the framework will always know where to store the data. 
+	Of course you may not forget to initialize the table with <code>mySqliteInstance.initTable(ModelClass).</code>
+	</p>
+
+	<br />
+	<p>
+	It's time to fetch the stored contacts:
+	<pre><code>sqlite.successHandler = onLoadedContacts;
+sqlite.load(Contact);
+
+function onLoadedContacts($contacts:ArrayCollection) : void 
+{
+	for each (var contact : Contact in $contacts) 
+	{
+		trace("first name:"+contact.firstName);
+	}
+}
+	</code></pre>
+	</p>
+
+
+	</section>
+</div>
+
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
