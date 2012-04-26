@@ -48,7 +48,7 @@ package butterfly.air.sqlite
 		/*
 		 * LOAD/SELECT
 		 */
-		public function find($whereClause:String) : void
+		public function find($whereClause : String, $successHandler : Function = null, $errorHandler : Function = null) : void
 		{
 			if(_sqlite==null) 
 			{
@@ -56,27 +56,30 @@ package butterfly.air.sqlite
 				if(_sqlite == null) throw new SQLiteError("Please define a SQLite instance before you load the model.");
 			}
 			
+			if($successHandler != null) successHandler = $successHandler;
+			if($errorHandler != null) errorHandler = $errorHandler;
+			
 			_sqlite.errorHandler = internalErrorHandler;
 			_sqlite.successHandler = onModelLoad;
 			_sqlite.load(this, $whereClause);
 		}
 		
-		public function findAll() : void
+		public function findAll($successHandler : Function = null, $errorHandler : Function = null) : void
 		{
 			loadClause = "all";
-			find("");
+			find("", $successHandler, $errorHandler);
 		}
 		
-		public function findFirst() : void
+		public function findFirst($successHandler : Function = null, $errorHandler : Function = null) : void
 		{
 			loadClause = "first";
-			find("");
+			find("", $successHandler, $errorHandler);
 		}
 		
-		public function findLast() : void
+		public function findLast($successHandler : Function = null, $errorHandler : Function = null) : void
 		{
 			loadClause = "last";
-			find("");
+			find("", $successHandler, $errorHandler);
 		}
 		
 		internal function onModelLoad($result:ArrayCollection) : void
@@ -186,13 +189,16 @@ package butterfly.air.sqlite
 		 * SAVE/INSERT
 		 */
 		 
-		public function save() : void
+		public function save($successHandler:Function=null, $errorHandler:Function=null) : void
 		{
 			if(_sqlite==null) 
 			{
 				_sqlite = SQLite.getUniqueSQLite();
 				if(_sqlite == null) throw new SQLiteError("Please define a SQLite instance before you save the model.");
 			}
+			
+			if($successHandler != null) successHandler = $successHandler;
+			if($errorHandler != null) errorHandler = $errorHandler;
 			
 			var startAndCommitTransaction:Boolean = !_sqlite.inTransaction;
 			if(startAndCommitTransaction) 
@@ -202,7 +208,7 @@ package butterfly.air.sqlite
 			_sqlite.successHandler = onModelSave;
 			_sqlite.save(this);
 			if(startAndCommitTransaction) 
-				_sqlite.commit();			
+				_sqlite.commit();
 				
 			if(_successHandler!=null) 
 			{

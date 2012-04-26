@@ -51,6 +51,7 @@ package butterfly.air.sqlite {
 		internal var sqliteModel:SQLiteModel;
 		public var successHandler:Function;
 		public var errorHandler : Function;
+		private var saveObj:Object;
 		private var evtDispatcher : EventDispatcher;
 		
 		internal static function getUniqueSQLite() : SQLite
@@ -485,6 +486,7 @@ package butterfly.air.sqlite {
 					}					
 				}
 				
+				saveObj = $instance;
 				flash_proxy::callProperty("$intern$save"+table.tableName, args);
 			}
 			else
@@ -666,6 +668,8 @@ package butterfly.air.sqlite {
 			{
 				sqlLog = new SQLiteLog();
 				var stmt:SQLiteStatement = createStatement();
+				if(saveObj) stmt.saveObj = saveObj;
+				saveObj = null;
 			    prepareStatement(stmt, $methodName, $args);
 				
 				if(isSync)

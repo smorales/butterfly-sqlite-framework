@@ -22,6 +22,11 @@ package butterfly.air.sqlite {
 		internal var model:SQLiteModel;
 		internal var sqlite:SQLite;
 		
+		/*
+		 * The object which will be saved into the table.
+		 * Only available if called the method SQLite::save().
+		 */ 
+		internal var saveObj:Object;
 		
 		public function SQLiteStatement($callHandlers:Boolean=false)
 		{
@@ -57,7 +62,14 @@ package butterfly.air.sqlite {
 							SQLiteModel(data[i]).setSQLite(sqlite);
 						} 
 					}
-					successHandler(new ArrayCollection(sqlResult.data));
+					if(saveObj==null) 
+					{
+						successHandler(new ArrayCollection(sqlResult.data));
+					}
+					else
+					{
+						successHandler(saveObj);						
+					}
 				}
 			}
 			dispatchEvent(new SQLiteEvent(SQLiteEvent.RESULT));
@@ -100,6 +112,7 @@ package butterfly.air.sqlite {
 			sqlResult = null;
 			model = null;
 			sqlite = null;
+			saveObj = null;
 		}
 	}
 }
