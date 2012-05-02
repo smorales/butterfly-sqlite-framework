@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Butterfly SQLite Framework
-subtitle: The easy way to handle SQLite databases
+subtitle: The easy way to deal with SQLite databases
 ---
 
 
