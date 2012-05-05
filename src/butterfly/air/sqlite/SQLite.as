@@ -605,7 +605,7 @@ package butterfly.air.sqlite {
 		 * </listing>
 		 * 
 		 * @param $query		The query to be run.
-		 * @param $castClass	The class to cast each returned row.
+		 * @param $castClass	The casting class for each returned row.
 		 */
 		public function runQuery($query:String, $castClass:Class=null) : ArrayCollection
 		{

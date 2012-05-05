@@ -187,8 +187,7 @@ package butterfly.air.sqlite
 		
 		/*
 		 * SAVE/INSERT
-		 */
-		 
+		 */		 
 		public function save($successHandler:Function=null, $errorHandler:Function=null) : void
 		{
 			if(_sqlite==null) 
@@ -209,12 +208,12 @@ package butterfly.air.sqlite
 			_sqlite.save(this);
 			if(startAndCommitTransaction) 
 				_sqlite.commit();
-				
+			
 			if(_successHandler!=null) 
 			{
 				_successHandler(this);
 				_successHandler = null;
-			}			
+			}
 		}
 		
 		internal function onModelSave($stmt:SQLiteStatement, $result:SQLResult) : void 
