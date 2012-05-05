@@ -5,8 +5,6 @@ package butterfly.air.sqlite {
 	import flash.net.Responder;
 	import butterfly.air.sqlite.util.DateUtil;
 
-	import mx.collections.ArrayCollection;
-
 	import flash.data.SQLConnection;
 	import flash.data.SQLResult;
 	import flash.errors.SQLError;
@@ -140,7 +138,7 @@ package butterfly.air.sqlite {
 		private function checkStoredProcedures() : void
 		{
 			if(!isSync) successHandler = onLoadedProcedures;
-			var procs:ArrayCollection = load(SQLProcedure);
+			var procs:Array = load(SQLProcedure);
 			if (sync)
 			{
 				for each (var procedure : SQLProcedure in procs) 
@@ -152,7 +150,7 @@ package butterfly.air.sqlite {
 				dispatchEvent(new SQLiteEvent(SQLiteEvent.ON_LOADED_PROCEDURES));
 			}
 		}
-		private function onLoadedProcedures(procs:ArrayCollection) : void
+		private function onLoadedProcedures(procs:Array) : void
 		{
 			for each (var procedure : SQLProcedure in procs) 
 			{
@@ -181,10 +179,11 @@ package butterfly.air.sqlite {
 			open();
 		}
 		
-		private function createStatement($query:String=null) : SQLiteStatement
+		private function createStatement($query:String=null, $collectionClass:Class=null) : SQLiteStatement
 		{
 			if(statements==null) statements = new Vector.<SQLiteStatement>();
 	    	var stmt:SQLiteStatement = new SQLiteStatement(!isSync);
+		    stmt.collectionClass = $collectionClass;
 		    stmt.sqlConnection = conn;
 			stmt.sqlite = this;
 		    if($query) stmt.text = $query;
@@ -395,12 +394,12 @@ package butterfly.air.sqlite {
 		 * @param $obj		A Class or instance. If the table for the class or instance class exists all 
 		 * 					rows are selected and returned.
 		 */
-		public function load($obj : *, $whereClause:String="") : ArrayCollection
+		public function load($obj : *, $whereClause:String="", $collectionClass:Class=null) : *
 		{
 			var table:SQLiteTable = SQLiteTable.getTable($obj);
-			var query:String = table.querySelect + " " + ($whereClause!="" ? "WHERE "+$whereClause : "");
 //			var query:String = "select * from "+table.tableName + " " + ($whereClause!="" ? "WHERE "+$whereClause : "");
-			return runQuery(query, table.tableClass);
+			var query:String = table.querySelect + " " + ($whereClause!="" ? "WHERE "+$whereClause : "");
+			return runQuery(query, table.tableClass, $collectionClass);
 		}
 		
 		/**
@@ -415,7 +414,7 @@ package butterfly.air.sqlite {
 		 * .
 		 * .
 		 * // then you can use the procedure elsewhere in your code
-		 * var result:ArrayCollection = db.getUserByName(User, {name:'john'});
+		 * var result:Array = db.getUserByName(User, {name:'john'});
 		 * if(result.length>0) trace(result[0]);
 		 * 
 		 * </listing>
@@ -541,7 +540,7 @@ package butterfly.air.sqlite {
 		 * 	public var lastName:String;
 		 * 	
 		 * 	[RelatedTable(table="Phone", foreignKey="idContact")]
-		 * 	public var phone:ArrayCollection; //could be also type of Vector.&lt;Phone&gt; or Array 
+		 * 	public var phone:Array; //could be also type of Vector.&lt;Phone&gt; or ArrayCollection 
 		 * 	public var address:String;
 		 * }
 		 * 
@@ -600,16 +599,16 @@ package butterfly.air.sqlite {
 		 * @example
 		 * <listing version='3.0'>
 		 * var db:SQLite = SQLite.getInstance(yourDatabaseFilePath);
-		 * var result:ArrayCollection = db.runQuery("select * from User", User);
+		 * var result:Array = db.runQuery("select * from User", User);
 		 * if(result.length>0) var firstUser:User = result[0];
 		 * </listing>
 		 * 
 		 * @param $query		The query to be run.
 		 * @param $castClass	The casting class for each returned row.
 		 */
-		public function runQuery($query:String, $castClass:Class=null) : ArrayCollection
+		public function runQuery($query:String, $castClass:Class=null, $collectionClass:Class=null) : *
 		{
-			var result : ArrayCollection = new ArrayCollection();
+			var result : Array = new Array();
 			if($query == "" || $query == null) return result;
 			
 			try
@@ -617,14 +616,14 @@ package butterfly.air.sqlite {
 				sqlLog = new SQLiteLog();
 				sqlLog.query = $query;
 				sqlLog.castingClass = $castClass;
-				var stmt:SQLiteStatement = createStatement($query);
+				var stmt:SQLiteStatement = createStatement($query, $collectionClass);
 				if($castClass!=null) stmt.itemClass = $castClass;
 				
 				if(isSync)
 				{
 				    stmt.execute();
 					var dbResult:SQLResult = stmt.getResult();
-					result = new ArrayCollection(dbResult.data);
+					result = dbResult.data;
 				}
 				else
 				{
@@ -676,7 +675,7 @@ package butterfly.air.sqlite {
 				{
 				    stmt.execute();
 					var result:SQLResult = stmt.getResult();
-					return new ArrayCollection(result.data);
+					return result.data;
 				}
 				else
 				{

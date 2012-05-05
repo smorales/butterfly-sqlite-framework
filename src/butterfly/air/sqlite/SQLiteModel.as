@@ -1,7 +1,5 @@
 package butterfly.air.sqlite 
 {
-	import mx.collections.ArrayCollection;
-
 	import flash.data.SQLResult;
 	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
@@ -21,20 +19,25 @@ package butterfly.air.sqlite
 		private var _errorHandler : Function;
 		private var countRelatedContent : int;
 		private var loadClause : String;
-		private var resultForFindAll : ArrayCollection;
+		private var resultForFindAll : Array;
 		private var countModels : int;
+		private var fullQualifiedClassName : String;
 		
+		
+		public var collectionClass : Class = Array;
 		
 		
 		public function SQLiteModel() 
 		{
+			collectionClass = Vector;
 			getModelInfos(this);
 		}
 		
 		private static function getModelInfos($model:SQLiteModel) : void
 		{
 			$model.xmlDefinition = describeType($model);
-			var cName:String = getQualifiedClassName($model);
+			$model.fullQualifiedClassName = getQualifiedClassName($model);
+			var cName:String = $model.fullQualifiedClassName;
 			$model.myClass = getDefinitionByName( cName.indexOf('::') == -1 ? cName : cName.split("::").join('.') ) as Class;
 			$model.tableName = cName.indexOf('::') == -1 ? cName : cName.split("::")[1];
 		}
@@ -61,7 +64,7 @@ package butterfly.air.sqlite
 			
 			_sqlite.errorHandler = internalErrorHandler;
 			_sqlite.successHandler = onModelLoad;
-			_sqlite.load(this, $whereClause);
+			_sqlite.load(this, $whereClause, Array);
 		}
 		
 		public function findAll($successHandler : Function = null, $errorHandler : Function = null) : void
@@ -82,7 +85,7 @@ package butterfly.air.sqlite
 			find("", $successHandler, $errorHandler);
 		}
 		
-		internal function onModelLoad($result:ArrayCollection) : void
+		internal function onModelLoad($result:*) : void
 		{
 			if ($result.length == 0) 
 			{
@@ -96,15 +99,9 @@ package butterfly.air.sqlite
 				resultForFindAll = $result;
 				loadModelContents();				
 			}
-			
-			mapValues($result);
-			loadRelatedTables();
-			
-//			if(loadClause=="all")
-//			{
-//				callSuccessHandler($result);
-//				return;
-//			}
+//			
+//			mapValues($result);
+//			loadRelatedTables();
 		}
 
 		private function loadModelContents() : void 
@@ -147,16 +144,17 @@ package butterfly.air.sqlite
 		{
 			if ($relation.holderColumn.isArrayCollection )
 			{
-				this[$relation.columnName] = $relation.data;
+				var c:Class = getDefinitionByName("mx.collections.ArrayCollection") as Class;
+				this[$relation.columnName] = new c($relation.data);
 			}
 			else if($relation.holderColumn.isVector)
 			{
 				var clazz:Class = getDefinitionByName($relation.holderColumn.dataTypeClassName) as Class;
-				this[$relation.columnName] = clazz($relation.data.source);					
+				this[$relation.columnName] = clazz($relation.data);
 			}
 			else if($relation.holderColumn.isArray)
 			{
-				this[$relation.columnName] = $relation.data.source;
+				this[$relation.columnName] = $relation.data;
 			}
 			else if($relation.data && $relation.data.length>0)
 			{
@@ -306,7 +304,7 @@ package butterfly.air.sqlite
 		/**
 		 * Assigns the loaded values to the instance. 
 		 */
-		private function mapValues($result : ArrayCollection) : void 
+		private function mapValues($result : *) : void 
 		{
 			if ($result.length > 0)
 			{
@@ -348,9 +346,23 @@ package butterfly.air.sqlite
 		{
 			if(_successHandler!=null)
 			{
-				 _successHandler($result);
+				var result:* = $result != this ? convertResult($result) : this;
+				 _successHandler(result);
 				 _successHandler = null;
 			}
+		}
+
+		private function convertResult($result : *) : * 
+		{
+			if(collectionClass == null || collectionClass == Vector)
+			{
+				var clazz:Class = getDefinitionByName("__AS3__.vec::Vector.<"+fullQualifiedClassName+">") as Class;
+				return clazz($result);	
+			}
+			
+			if(collectionClass == Array && $result is Array ) return $result;
+			
+			return new collectionClass($result);
 		}
 	}
 }

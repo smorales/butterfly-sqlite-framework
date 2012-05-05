@@ -1,11 +1,10 @@
 package butterfly.air.sqlite {
-	import mx.collections.ArrayCollection;
-
 	import flash.data.SQLResult;
 	import flash.data.SQLStatement;
 	import flash.events.SQLErrorEvent;
 	import flash.events.SQLEvent;
 	import flash.net.Responder;
+	import flash.utils.getDefinitionByName;
 
 	/**
 	 * @author solano
@@ -21,6 +20,7 @@ package butterfly.air.sqlite {
 		public var sqlResult : SQLResult;
 		internal var model:SQLiteModel;
 		internal var sqlite:SQLite;
+		internal var collectionClass : Class;
 		
 		/*
 		 * The object which will be saved into the table.
@@ -64,7 +64,15 @@ package butterfly.air.sqlite {
 					}
 					if(saveObj==null) 
 					{
-						successHandler(new ArrayCollection(sqlResult.data));
+						if(collectionClass == Array || collectionClass == null)
+						{
+							successHandler(sqlResult.data);							
+						}
+						else
+						{
+							var c:Class = getDefinitionByName("mx.collections.ArrayCollection") as Class;
+							successHandler(new c(sqlResult.data));							
+						}
 					}
 					else
 					{

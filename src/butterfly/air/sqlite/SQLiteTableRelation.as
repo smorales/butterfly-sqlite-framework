@@ -1,6 +1,5 @@
 package butterfly.air.sqlite 
 {
-	import mx.collections.ArrayCollection;
 	/**
 	 * @author Solano Morales
 	 * @author Solano Morales
@@ -14,7 +13,7 @@ package butterfly.air.sqlite
 		internal var foreignKey:String;
 		internal var parentKey:String;
 		internal var tableClass : Class;
-		internal var data : ArrayCollection;
+		internal var data : Array;
 		
 		private var model : SQLiteModel;
 		private var sqlite : SQLite;
@@ -28,10 +27,10 @@ package butterfly.air.sqlite
 			
 			var pk:String = $model[parentKey] is String ? "'"+$model[parentKey]+"'" : $model[parentKey];
 			var query:String = " SELECT * FROM "+tableName + " WHERE " + foreignKey + " = "+pk;
-			sqlite.runQuery(query, tableClass);
+			sqlite.runQuery(query, tableClass, Array);
 		}
 		
-		private function onSuccess($data:ArrayCollection) : void
+		private function onSuccess($data:Array) : void
 		{
 			data = $data;
 			model.onLoadedRelatedData(this);
