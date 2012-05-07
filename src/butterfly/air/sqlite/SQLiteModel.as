@@ -135,7 +135,7 @@ package butterfly.air.sqlite
 		{
 			if(--countModels==0)
 			{
-				callSuccessHandler(searchResult);
+				callSuccessHandler(searchResult); 
 			}
 		}
 		
