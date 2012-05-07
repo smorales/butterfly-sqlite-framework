@@ -139,6 +139,10 @@ package butterfly.air.sqlite
 			}
 		}
 		
+		
+		/**
+		 * Loads the content which lies in other tables but are referenced in a variable.
+		 */
 		public function loadRelatedTables() : void
 		{
 			var childTables:Vector.<SQLiteTableRelation> = SQLiteTable.getExternalTables(this);
