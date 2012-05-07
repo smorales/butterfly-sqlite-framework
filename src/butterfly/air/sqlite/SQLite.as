@@ -1,18 +1,18 @@
-package butterfly.air.sqlite {
-	import org.osmf.metadata.NullMetadataSynthesizer;
-	import flash.events.SQLErrorEvent;
-	import flash.data.SQLSchemaResult;
-	import flash.net.Responder;
+package butterfly.air.sqlite 
+{
 	import butterfly.air.sqlite.util.DateUtil;
 
 	import flash.data.SQLConnection;
 	import flash.data.SQLResult;
+	import flash.data.SQLSchemaResult;
 	import flash.errors.SQLError;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.events.SQLErrorEvent;
 	import flash.events.SQLEvent;
 	import flash.filesystem.File;
+	import flash.net.Responder;
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
 
@@ -49,6 +49,7 @@ package butterfly.air.sqlite {
 		internal var sqliteModel:SQLiteModel;
 		public var successHandler:Function;
 		public var errorHandler : Function;
+		private var _betweenBeginAndCommit:Boolean;
 		private var saveObj:Object;
 		private var evtDispatcher : EventDispatcher;
 		
@@ -357,7 +358,7 @@ package butterfly.air.sqlite {
 		 */
 		public function get inTransaction () : Boolean
 		{
-			return conn.inTransaction;
+			return conn.inTransaction || _betweenBeginAndCommit;
 		}
 		
 		public function loadSchema() : void
@@ -377,6 +378,7 @@ package butterfly.air.sqlite {
 		 */
 		public function begin($option:String=null, $responder:Responder=null) : void
 		{
+			_betweenBeginAndCommit = true;
 			conn.begin($option, $responder);
 		}
 	
@@ -387,6 +389,7 @@ package butterfly.air.sqlite {
 		 */
 		public function commit($responder:Responder=null) : void
 		{
+			_betweenBeginAndCommit = false;
 			conn.commit($responder);
 		}
 		

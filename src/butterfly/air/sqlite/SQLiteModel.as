@@ -1,9 +1,6 @@
 package butterfly.air.sqlite 
 {
 	import flash.data.SQLResult;
-	import flash.utils.describeType;
-	import flash.utils.getDefinitionByName;
-	import flash.utils.getQualifiedClassName;
 	
 	
 	/**
@@ -13,33 +10,35 @@ package butterfly.air.sqlite
 	{
 		private var _sqlite : SQLite;
 		private var tableName : String;
-		private var myClass : Class;
 		private var xmlDefinition : XML;
 		private var _successHandler:Function;
 		private var _errorHandler : Function;
 		private var countRelatedContent : int;
 		private var loadClause : String;
-		private var resultForFindAll : Array;
+		private var searchResult : Array;
 		private var countModels : int;
-		private var fullQualifiedClassName : String;
 		
 		
 		public var collectionClass : Class = Array;
+		private var findLastClause : String;
+		private var findFirstClause : String;
+		private var modelTypeInfos : SQLiteModelTypeInfos;
+		public var autoDeepLoad : Boolean;
 		
 		
 		public function SQLiteModel() 
 		{
 			collectionClass = Vector;
-			getModelInfos(this);
+			getModelInfos();
 		}
 		
-		private static function getModelInfos($model:SQLiteModel) : void
+		private function getModelInfos() : void
 		{
-			$model.xmlDefinition = describeType($model);
-			$model.fullQualifiedClassName = getQualifiedClassName($model);
-			var cName:String = $model.fullQualifiedClassName;
-			$model.myClass = getDefinitionByName( cName.indexOf('::') == -1 ? cName : cName.split("::").join('.') ) as Class;
-			$model.tableName = cName.indexOf('::') == -1 ? cName : cName.split("::")[1];
+			modelTypeInfos = SQLiteModelTypeInfos.getModelType(this);
+			xmlDefinition = modelTypeInfos.xmlDefinition;
+			tableName = modelTypeInfos.tableName;
+			findFirstClause = modelTypeInfos.findFirstClause;
+			findLastClause = modelTypeInfos.findLastClause;
 		}
 		
 		private function internalErrorHandler($log:SQLiteLog) : void
@@ -76,38 +75,53 @@ package butterfly.air.sqlite
 		public function findFirst($successHandler : Function = null, $errorHandler : Function = null) : void
 		{
 			loadClause = "first";
-			find("", $successHandler, $errorHandler);
+			find(findFirstClause, $successHandler, $errorHandler);
 		}
 		
 		public function findLast($successHandler : Function = null, $errorHandler : Function = null) : void
 		{
 			loadClause = "last";
-			find("", $successHandler, $errorHandler);
+			find(findLastClause, $successHandler, $errorHandler);
 		}
 		
-		internal function onModelLoad($result:*) : void
+		/**
+		 * Called after a successfully executed find method.
+		 */
+		internal function onModelLoad($result:Array) : void
 		{
-			if ($result.length == 0) 
+			searchResult = $result;
+			
+			if (searchResult.length == 0) 
 			{
 				_successHandler(null);
 				_successHandler = null;
 				return;
 			}
 			
-			if(loadClause=="all") 
+			if(searchResult.length <= 1)
 			{
-				resultForFindAll = $result;
-				loadModelContents();				
+				mapValues(searchResult);
+				if(autoDeepLoad) 
+					loadRelatedTables();				
+				else
+					callSuccessHandler(searchResult);					
 			}
-//			
-//			mapValues($result);
-//			loadRelatedTables();
+			else 
+			{
+				if(autoDeepLoad) 
+					loadModelContents();
+				else
+					callSuccessHandler(searchResult);					
+			}
 		}
-
+		
+		/**
+		 * Loads all related tables for the models inside <code>searchResult</code>.
+		 */
 		private function loadModelContents() : void 
 		{
-			countModels = resultForFindAll.length;
-			for each (var model : SQLiteModel in resultForFindAll) 
+			countModels = searchResult.length;
+			for each (var model : SQLiteModel in searchResult) 
 			{
 				if(model)
 				{
@@ -121,7 +135,7 @@ package butterfly.air.sqlite
 		{
 			if(--countModels==0)
 			{
-				callSuccessHandler(resultForFindAll);
+				callSuccessHandler(searchResult);
 			}
 		}
 		
@@ -136,7 +150,7 @@ package butterfly.air.sqlite
 			
 			if(countRelatedContent==0)
 			{
-				callSuccessHandler( loadClause=="all" ? resultForFindAll : this);
+				callSuccessHandler( loadClause=="all" ? searchResult : this);
 			}						
 		}
 		
@@ -144,12 +158,11 @@ package butterfly.air.sqlite
 		{
 			if ($relation.holderColumn.isArrayCollection )
 			{
-				var c:Class = getDefinitionByName("mx.collections.ArrayCollection") as Class;
-				this[$relation.columnName] = new c($relation.data);
+				this[$relation.columnName] = new modelTypeInfos.arrayCollectionClass($relation.data);
 			}
 			else if($relation.holderColumn.isVector)
 			{
-				var clazz:Class = getDefinitionByName($relation.holderColumn.dataTypeClassName) as Class;
+				var clazz:Class = modelTypeInfos.columnTypes[$relation.columnName];
 				this[$relation.columnName] = clazz($relation.data);
 			}
 			else if($relation.holderColumn.isArray)
@@ -174,7 +187,7 @@ package butterfly.air.sqlite
 				countRelatedContent--;
 				if(countRelatedContent==0) 
 				{
-					callSuccessHandler( loadClause == "all" ? resultForFindAll : this);
+					callSuccessHandler( loadClause == "all" ? searchResult : this);
 				}
 			}
 			
@@ -185,7 +198,45 @@ package butterfly.air.sqlite
 		
 		/*
 		 * SAVE/INSERT
-		 */		 
+		 */
+		
+		/**
+		 * Saves a collection of models.
+		 * 
+		 * @param $collection		Collection which can be an <code>Array</code>, <code>ArrayCollection</code> or <code>Vector</code>.
+		 * @param $successHandler	Callback handler, which will be invoked after a successfully insert. 
+		 * 							The last saved item will bypassed to the callback method. 
+		 * @param $errorHandler		Callback handler, which will be invoked if an error occurs. 
+		 */
+		public function saveBulk($collection:*, $successHandler:Function=null, $errorHandler:Function=null) : void
+		{
+			if(_sqlite==null) 
+			{
+				_sqlite = SQLite.getUniqueSQLite();
+				if(_sqlite == null) throw new SQLiteError("Please define a SQLite instance before saving a collection.");
+			}
+			
+			var startAndCommitTransaction:Boolean = !_sqlite.inTransaction;
+			if(startAndCommitTransaction) 
+				_sqlite.begin();
+			
+			var index:int = 0;
+			for each (var model : SQLiteModel in $collection) 
+			{
+				index ++;
+				index == $collection.length ? model.save($successHandler, $errorHandler) : model.save();
+			}
+			
+			if(startAndCommitTransaction) 
+				_sqlite.commit();
+		}
+		
+		/**
+		 * Saves the model.
+		 * 
+		 * @param $successHandler	Callback handler, which will be invoked after a successfully insert.
+		 * @param $errorHandler		Callback handler, which will be invoked if an error occurs. 
+		 */
 		public function save($successHandler:Function=null, $errorHandler:Function=null) : void
 		{
 			if(_sqlite==null) 
@@ -204,6 +255,7 @@ package butterfly.air.sqlite
 			_sqlite.errorHandler = internalErrorHandler;
 			_sqlite.successHandler = onModelSave;
 			_sqlite.save(this);
+			
 			if(startAndCommitTransaction) 
 				_sqlite.commit();
 			
@@ -304,7 +356,7 @@ package butterfly.air.sqlite
 		/**
 		 * Assigns the loaded values to the instance. 
 		 */
-		private function mapValues($result : *) : void 
+		private function mapValues($result : Array) : void 
 		{
 			if ($result.length > 0)
 			{
@@ -318,6 +370,19 @@ package butterfly.air.sqlite
 					}
 				}
 			}
+		}
+		
+		public function parseObject($obj:Object) : void
+		{
+			var columns:Vector.<SQLiteColumn> = getColumns();
+			for each (var col : SQLiteColumn in columns) 
+			{
+				if(col.relatedTableName==null) 
+				{
+					this[col.name] = $obj[col.name];
+				}
+			}
+			loadRelatedTables();
 		}
 		
 		private function getColumns() : Vector.<SQLiteColumn>
@@ -346,7 +411,7 @@ package butterfly.air.sqlite
 		{
 			if(_successHandler!=null)
 			{
-				var result:* = $result != this ? convertResult($result) : this;
+				var result:* = ($result != this) ? convertResult($result) : this;
 				 _successHandler(result);
 				 _successHandler = null;
 			}
@@ -356,8 +421,7 @@ package butterfly.air.sqlite
 		{
 			if(collectionClass == null || collectionClass == Vector)
 			{
-				var clazz:Class = getDefinitionByName("__AS3__.vec::Vector.<"+fullQualifiedClassName+">") as Class;
-				return clazz($result);	
+				return modelTypeInfos.vectorClass($result);	
 			}
 			
 			if(collectionClass == Array && $result is Array ) return $result;

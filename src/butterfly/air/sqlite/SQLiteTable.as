@@ -276,11 +276,14 @@ package butterfly.air.sqlite
 		private function parseColumns() : void 
 		{
 			_columns = new Vector.<SQLiteColumn>();
-			for each (var node : XML in _xmlDescription..accessor) 
+			var node : XML;
+			var column:SQLiteColumn;
+			
+			for each (node in _xmlDescription..accessor) 
 			{
 				if (node.@access == "readwrite")
 				{
-					var column:SQLiteColumn = new SQLiteColumn(node, sqlite, this);
+					column = new SQLiteColumn(node, sqlite, this);
 					_columns.push(column);
 				}
 			}
